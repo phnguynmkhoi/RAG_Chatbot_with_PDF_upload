@@ -5,14 +5,13 @@ from langchain_chroma import Chroma
 from langchain_groq import ChatGroq
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 
 from utils import write_uploaded_file
-from prompts import contextualize_q_system_prompt, qa_prompt
+from prompts import contextualize_q_prompt, qa_prompt
 
 import os
 from dotenv import load_dotenv
@@ -51,21 +50,12 @@ if api_key:
     uploaded_file = st.file_uploader('Choose your PDF file', type='pdf', accept_multiple_files=True)
 
     if uploaded_file:
-        documents = write_uploaded_file(uploaded_file)
+        documents = write_uploaded_file(uploaded_file, session_id)
 
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=50)
         new_docs = text_splitter.split_documents(documents)
         vectorstore = Chroma.from_documents(new_docs, embedding=embeddings)
         retriever = vectorstore.as_retriever()
-
-
-        contextualize_q_prompt = ChatPromptTemplate.from_messages(
-            [
-                ('system', contextualize_q_system_prompt),
-                MessagesPlaceholder(variable_name='history'),
-                ('human', '{input}')
-            ]
-        )
 
         # create history retriever chain
         history_aware_retriever = create_history_aware_retriever(llm, retriever, contextualize_q_prompt)
