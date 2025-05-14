@@ -1,3 +1,6 @@
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+
+
 contextualize_q_system_prompt = (
             "Given a chat history and the latest user question "
             "which might reference context in the chat history, "
@@ -18,6 +21,14 @@ system_prompt = (
 qa_prompt = ChatPromptTemplate.from_messages(
             [
                 ('system', system_prompt),
+                ('human', '{input}')
+            ]
+        )
+
+contextualize_q_prompt = ChatPromptTemplate.from_messages(
+            [
+                ('system', contextualize_q_system_prompt),
+                MessagesPlaceholder(variable_name='history'),
                 ('human', '{input}')
             ]
         )
